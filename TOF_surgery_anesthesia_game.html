@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOF 手術 × 麻醉 教學遊戲</title>
+
+<style>
+  html { background: #080b12 !important; color-scheme: dark; }
+  :root {
+    --bg:       #080b12;
+    --surface:  #131726;
+    --surface2: #1b2035;
+    --border:   #2e3858;
+    --border2:  #3a4870;
+    --accent:   #5eead4;
+    --accent2:  #f87171;
+    --accent3:  #6ee7b7;
+    --accent4:  #fbbf24;
+    --accent5:  #a78bfa;
+    --text:     #f0f4ff;
+    --text-dim: #a8b4cf;
+    --text-muted:#6b7fa8;
+    --font-body:   -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    --font-mono:   'SF Mono', 'Fira Code', 'Consolas', monospace;
+    --font-display:'Georgia', 'Times New Roman', serif;
+    --radius:   14px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #080b12 !important;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+    font-size: 18px;
+    line-height: 1.85;
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Header ── */
+  .header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+    position: sticky; top: 0;
+    background: rgba(8,11,18,0.95);
+    backdrop-filter: blur(16px);
+    z-index: 100;
+  }
+  .header-badge {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 10px;
+    background: var(--accent4); color: #000;
+    padding: 4px 10px; border-radius: 4px;
+    letter-spacing: 1.5px; font-weight: 500;
+  }
+  .header-title { font-size: 16px; font-weight: 500; color: var(--text); }
+  .progress-bar-wrap { margin-left: auto; }
+  .stage-dots { display: flex; gap: 7px; align-items: center; }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--border2);
+    transition: all 0.35s cubic-bezier(.4,0,.2,1);
+  }
+  .dot.active { background: var(--accent4); box-shadow: 0 0 10px var(--accent4); transform: scale(1.3); }
+  .dot.done   { background: var(--accent3); }
+
+  /* ── Stages ── */
+  .stage { display: none; background: #080b12; }
+  .stage.active { display: block; animation: stageIn 0.45s cubic-bezier(.4,0,.2,1); background: #080b12; }
+  @keyframes stageIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ── Stage Header ── */
+  .stage-header {
+    padding: 36px 28px 28px;
+    border-bottom: 1px solid var(--border);
+    background: #080b12;
+    position: relative; overflow: hidden;
+  }
+  .stage-header::after {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, var(--accent4), transparent 60%);
+  }
+  .stage-label {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 12px;
+    color: var(--accent4); letter-spacing: 3px;
+    margin-bottom: 10px; text-transform: uppercase; font-weight: 500;
+  }
+  .stage-title {
+    font-family: 'Georgia', 'Times New Roman', serif; font-size: 30px; font-weight: 900;
+    color: #ffffff; line-height: 1.2; letter-spacing: -0.3px; margin-bottom: 10px;
+    text-shadow: 0 1px 12px rgba(0,0,0,0.6);
+  }
+  .stage-sub { font-size: 16px; color: var(--text-dim); line-height: 1.65; font-weight: 400; }
+
+  /* ── Concept Cards ── */
+  .concept-section { padding: 24px 28px; background: #080b12; }
+  .concept-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px 22px 22px 26px;
+    margin-bottom: 14px; position: relative; overflow: hidden;
+  }
+  .concept-card::before {
+    content:''; position:absolute; top:0; left:0;
+    width:3px; height:100%; background: var(--accent); border-radius:2px 0 0 2px;
+  }
+  .concept-card.warn::before  { background: var(--accent4); }
+  .concept-card.danger::before{ background: var(--accent2); }
+  .concept-card.good::before  { background: var(--accent3); }
+  .concept-card.purple::before{ background: var(--accent5); }
+  .card-title {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 12px; font-weight: 500;
+    color: var(--accent); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .concept-card.warn   .card-title { color: var(--accent4); }
+  .concept-card.danger .card-title { color: var(--accent2); }
+  .concept-card.good   .card-title { color: var(--accent3); }
+  .concept-card.purple .card-title { color: var(--accent5); }
+  .card-body { font-size: 17px; line-height: 1.9; color: var(--text); font-weight: 400; }
+  .card-body em { color: var(--accent); font-style: normal; font-weight: 600; }
+  .concept-card.warn   .card-body em { color: var(--accent4); }
+  .concept-card.danger .card-body em { color: var(--accent2); }
+  .concept-card.good   .card-body em { color: var(--accent3); }
+  .concept-card.purple .card-body em { color: var(--accent5); }
+  .en-term {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 10px; color: var(--text-muted);
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 1px 7px; border-radius: 4px; margin-left: 5px; vertical-align: middle;
+  }
+
+  /* ── Age Timeline ── */
+  .timeline { padding: 0 28px 24px; background: #080b12; }
+  .tl-item {
+    display: flex; gap: 16px; margin-bottom: 0;
+    opacity: 0; transform: translateX(-10px);
+    transition: all 0.4s ease;
+  }
+  .tl-item.revealed { opacity: 1; transform: translateX(0); }
+  .tl-line {
+    display: flex; flex-direction: column; align-items: center; gap: 0;
+    flex-shrink: 0;
+  }
+  .tl-dot {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 10px; font-weight: 500;
+    flex-shrink: 0; border: 2px solid;
+  }
+  .tl-connector {
+    width: 2px; flex: 1; min-height: 24px;
+    background: var(--border); margin: 4px 0;
+  }
+  .tl-body { padding: 6px 0 28px; flex: 1; }
+  .tl-age  { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 11px; letter-spacing: 1px; margin-bottom: 4px; font-weight: 500; }
+  .tl-op   { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .tl-desc { font-size: 17px; color: var(--text-dim); line-height: 1.75; font-weight: 400; }
+
+  /* ── Comparison Grid ── */
+  .compare-grid {
+    padding: 0 28px 24px; background: #080b12;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .cg-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px; position: relative; overflow: hidden;
+  }
+  .cg-card::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  }
+  .cg-num {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 9px; letter-spacing: 1px;
+    margin-bottom: 6px; font-weight: 500; text-transform: uppercase;
+  }
+  .cg-title { font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 8px; line-height: 1.3; }
+  .cg-body  { font-size: 14px; color: var(--text-dim); line-height: 1.65; font-weight: 400; }
+  .cg-body em { font-style: normal; font-weight: 600; }
+
+  /* ── Quiz ── */
+  .quiz-section { padding: 0 28px 28px; background: #080b12; }
+  .quiz-prompt {
+    font-size: 18px; font-weight: 500; color: var(--text); line-height: 1.7;
+    margin-bottom: 16px; padding: 18px 20px;
+    background: var(--surface); border-radius: var(--radius);
+    border-left: 3px solid var(--accent4);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+  .options-grid { display: grid; gap: 10px; }
+  .option-btn {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 15px 18px;
+    text-align: left; color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif; font-size: 17px;
+    cursor: pointer; transition: all 0.2s; line-height: 1.65; font-weight: 400;
+  }
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--accent4); transform: translateX(5px);
+    box-shadow: -3px 0 0 var(--accent4);
+    background: rgba(251,191,36,0.06);
+  }
+  .option-btn.correct { border-color: var(--accent3); background: rgba(110,231,183,0.08); color: var(--accent3); font-weight: 500; }
+  .option-btn.wrong   { border-color: var(--accent2); background: rgba(248,113,113,0.07); color: var(--accent2); }
+  .option-btn:disabled { cursor: default; }
+  .feedback-box {
+    margin-top: 14px; padding: 18px 20px; border-radius: var(--radius-sm);
+    font-size: 17px; line-height: 1.85; font-weight: 400; display: none;
+  }
+  .feedback-box.show { display: block; animation: stageIn 0.3s ease; }
+  .feedback-box.correct-fb { background: rgba(110,231,183,0.08); border: 1px solid var(--accent3); color: var(--accent3); }
+  .feedback-box.wrong-fb   { background: rgba(248,113,113,0.07); border: 1px solid var(--accent2); color: #fca5a5; }
+
+  /* ── Scenario Box ── */
+  .scenario-box {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 20px 22px; margin: 0 28px 20px;
+    position: relative; overflow: hidden;
+  }
+  .scenario-box::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background: linear-gradient(90deg, var(--accent4), transparent);
+  }
+  .scenario-title {
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 10px; font-weight: 500;
+    color: var(--accent4); letter-spacing: 2px; margin-bottom: 10px; text-transform: uppercase;
+  }
+  .scenario-body { font-size: 17px; line-height: 1.85; color: var(--text); font-weight: 400; }
+  .scenario-body strong { color: var(--accent4); font-weight: 600; }
+
+  /* ── Protocol Steps ── */
+  .protocol-section { padding: 0 28px 24px; background: #080b12; }
+  .protocol-step {
+    display: flex; gap: 16px; padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+    opacity: 0; transform: translateX(-8px); transition: all 0.4s ease;
+  }
+  .protocol-step.revealed { opacity: 1; transform: translateX(0); }
+  .protocol-step:last-child { border-bottom: none; }
+  .ps-num {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--accent4); color: #000;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 12px; font-weight: 500; margin-top: 2px;
+  }
+  .ps-num.green { background: var(--accent3); }
+  .ps-num.red   { background: var(--accent2); color: #fff; }
+  .ps-num.purple{ background: var(--accent5); }
+  .ps-title { font-size: 17px; font-weight: 600; color: #fff; margin-bottom: 6px; }
+  .ps-desc  { font-size: 16px; color: var(--text-dim); line-height: 1.75; font-weight: 400; }
+  .ps-desc em { color: var(--accent3); font-style: normal; font-weight: 500; }
+  .ps-desc .danger { color: var(--accent2); font-style: normal; font-weight: 500; }
+
+  /* ── Next Button ── */
+  .next-btn {
+    display: none; width: calc(100% - 56px); margin: 0 28px 36px;
+    padding: 17px; background: linear-gradient(135deg, var(--accent4), #f59e0b);
+    color: #000; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif; font-size: 17px; font-weight: 700;
+    border: none; border-radius: var(--radius-sm); cursor: pointer;
+    transition: all 0.25s; box-shadow: 0 4px 20px rgba(251,191,36,0.25);
+  }
+  .next-btn.show { display: block; animation: stageIn 0.35s ease; }
+  .next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(251,191,36,0.35); }
+
+  /* ── Summary ── */
+  .summary { padding: 44px 28px; text-align: center; background: #080b12; min-height: 60vh; }
+  .summary-icon { font-size: 44px; margin-bottom: 16px; }
+  .summary-title {
+    font-family: 'Georgia', 'Times New Roman', serif; font-size: 30px; font-weight: 900;
+    color: #ffffff; text-shadow: 0 1px 10px rgba(0,0,0,0.5); margin-bottom: 10px;
+  }
+  .score-badge {
+    display: inline-block; background: var(--surface2);
+    border: 1px solid var(--border2); border-radius: var(--radius-sm);
+    padding: 10px 28px; font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 20px;
+    color: var(--accent3); margin-bottom: 28px; letter-spacing: 1px;
+  }
+  .summary-body { font-size: 17px; color: var(--text-dim); line-height: 1.75; max-width: 290px; margin: 0 auto 24px; font-weight: 400; }
+
+  /* ── Step list (review) ── */
+  .step-list { padding: 0 28px; background: #080b12; }
+  .step-item {
+    display: flex; gap: 16px; margin-bottom: 18px;
+    opacity: 0; transform: translateX(-12px); transition: all 0.4s ease;
+  }
+  .step-item.revealed { opacity: 1; transform: translateX(0); }
+  .step-num {
+    flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 11px; color: var(--accent4); margin-top: 2px;
+  }
+  .step-content { font-size: 17px; line-height: 1.8; color: #e8edf8; font-weight: 400; }
+  .step-content em { color: var(--accent4); font-style: normal; font-weight: 600; }
+
+  /* ── Accordion ── */
+  .diff-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 10px; overflow: hidden;
+    cursor: pointer; transition: border-color 0.2s;
+  }
+  .diff-card:hover { border-color: var(--border2); }
+  .diff-header { display: flex; align-items: center; gap: 14px; padding: 16px 18px; }
+  .diff-icon {
+    width: 34px; height: 34px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 11px; font-weight: 500; flex-shrink: 0;
+  }
+  .diff-title { font-size: 17px; font-weight: 700; color: var(--text); }
+  .diff-sub   { font-size: 16px; color: var(--text-dim); margin-top: 2px; font-weight: 400; }
+  .diff-arrow { margin-left: auto; font-size: 11px; color: var(--text-muted); transition: transform 0.3s; }
+  .diff-arrow.open { transform: rotate(90deg); }
+  .diff-body { display: none; padding: 0 18px 18px; border-top: 1px solid var(--border); padding-top: 16px; }
+  .diff-body.open { display: block; animation: stageIn 0.3s ease; }
+  .diff-item {
+    font-size: 16px; line-height: 1.8; color: var(--text); margin-bottom: 14px;
+    padding-left: 12px; border-left: 2px solid var(--border2); font-weight: 400;
+  }
+  .diff-item:last-child { margin-bottom: 0; }
+  .diff-item em { color: var(--accent4); font-style: normal; font-weight: 600; }
+  .diff-clue { display: block; font-size: 15px; color: var(--text-muted); margin-top: 4px; font-style: italic; }
+
+  @media(max-width:400px){
+    .stage-title{font-size:22px;}
+    .concept-section,.quiz-section,.step-list,.protocol-section{padding-left:20px;padding-right:20px;}
+    .next-btn{width:calc(100% - 40px);margin:0 20px 32px;}
+    .compare-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+
+<body>
+
+<!-- Header -->
+<header class="header">
+  <span class="header-badge">TOF-S</span>
+  <span class="header-title">TOF 手術 × 麻醉策略</span>
+  <div class="progress-bar-wrap">
+    <div class="stage-dots">
+      <div class="dot active" id="dot-1"></div>
+      <div class="dot" id="dot-2"></div>
+      <div class="dot" id="dot-3"></div>
+      <div class="dot" id="dot-4"></div>
+      <div class="dot" id="dot-5"></div>
+      <div class="dot" id="dot-6"></div>
+      <div class="dot" id="dot-7"></div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════
+     STAGE 1A: 手術時機的邏輯
+═══════════════════════════════════════ -->
+<div class="stage active" id="stage-1a">
+  <div class="stage-header">
+    <div class="stage-label">STAGE 1 — PART A</div>
+    <div class="stage-title">為什麼 TOF 要依年齡選擇手術？</div>
+    <div class="stage-sub">同一個診斷，不同年齡，完全不同的手術決策</div>
+  </div>
+  <div class="concept-section">
+    <div class="concept-card">
+      <div class="card-title">核心概念：姑息 vs 矯正</div>
+      <div class="card-body">
+        TOF 的手術分兩大類：<br><br>
+        <em>完整矯正術</em><span class="en-term">Primary / Complete Repair</span><br>
+        一次手術同時修補 VSD + 解除 RVOT 阻塞，根本解決問題。<br><br>
+        <em>姑息性手術</em><span class="en-term">Palliative Surgery</span><br>
+        先做一個暫時性的處置，讓病人撐到可以做矯正術的時機。<br><br>
+        選哪條路，取決於<em>年齡、體重、肺動脈發育、全身狀況</em>。
+      </div>
+    </div>
+    <div class="concept-card warn">
+      <div class="card-title">關鍵指標：Qp/Qs</div>
+      <div class="card-body">
+        <em>Qp</em>（肺血流量）vs <em>Qs</em>（體循環血流量）<br><br>
+        正常：Qp/Qs = 1（肺和體循環各跑一遍）<br>
+        TOF：Qp/Qs &lt; 1（肺血流不足 → 缺氧）<br><br>
+        姑息手術的目標就是讓 <em>Qp/Qs 提升到接近 1</em>，讓寶寶可以撐到矯正術。<br>
+        但 Qp/Qs 太高也不好：肺血流過多 → 心臟容積負荷過重。
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline" id="tl-wrap">
+    <div style="font-family:'SF Mono', 'Fira Code', 'Consolas', monospace;font-size:10px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;">TOF 手術時間軸</div>
+
+    <div class="tl-item" id="tl1">
+      <div class="tl-line">
+        <div class="tl-dot" style="background:rgba(248,113,113,0.15);border-color:#f87171;color:#f87171;">0m</div>
+        <div class="tl-connector"></div>
+      </div>
+      <div class="tl-body">
+        <div class="tl-age" style="color:#f87171;">新生兒 ～ 3 個月</div>
+        <div class="tl-op">Primary repair 或 BT Shunt</div>
+        <div class="tl-desc">症狀性（嚴重紫紺、缺氧發作）→ 依高風險因素決定走哪條路</div>
+      </div>
+    </div>
+
+    <div class="tl-item" id="tl2">
+      <div class="tl-line">
+        <div class="tl-dot" style="background:rgba(251,191,36,0.15);border-color:#fbbf24;color:#fbbf24;">3m</div>
+        <div class="tl-connector"></div>
+      </div>
+      <div class="tl-body">
+        <div class="tl-age" style="color:#fbbf24;">3 ～ 6 個月（最佳時機）</div>
+        <div class="tl-op">選擇性完整矯正術</div>
+        <div class="tl-desc">無症狀嬰兒的首選：住院時間短、併發症少、避免 RVH 過度</div>
+      </div>
+    </div>
+
+    <div class="tl-item" id="tl3">
+      <div class="tl-line">
+        <div class="tl-dot" style="background:rgba(110,231,183,0.15);border-color:#6ee7b7;color:#6ee7b7;">6m+</div>
+        <div class="tl-connector"></div>
+      </div>
+      <div class="tl-body">
+        <div class="tl-age" style="color:#6ee7b7;">姑息術後嬰兒</div>
+        <div class="tl-op">分階段完整矯正術</div>
+        <div class="tl-desc">先前已做 BT Shunt 者，等肺動脈發育足夠後再做矯正</div>
+      </div>
+    </div>
+
+    <div class="tl-item" id="tl4">
+      <div class="tl-line">
+        <div class="tl-dot" style="background:rgba(167,139,250,0.15);border-color:#a78bfa;color:#a78bfa;">大</div>
+      </div>
+      <div class="tl-body">
+        <div class="tl-age" style="color:#a78bfa;">大小孩 ／ 成人</div>
+        <div class="tl-op">二次手術（PVR 為主）</div>
+        <div class="tl-desc">矯正術後遠期出現肺動脈瓣逆流、RV 擴大 → 需要肺動脈瓣置換</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="next-btn show" onclick="goTo('stage-1b')">繼續 → 測驗時機判斷</button>
+</div>
+
+<!-- ═══════════════════════════════════════
+     STAGE 1B: 手術時機判斷題
+═══════════════════════════════════════ -->
+<div class="stage" id="stage-1b">
+  <div class="stage-header">
+    <div class="stage-label">STAGE 1 — PART B</div>
+    <div class="stage-title">手術時機判斷</div>
+    <div class="stage-sub">三個案例，選擇最適合的手術策略</div>
+  </div>
+
+  <div class="quiz-section" id="s1-q1">
+    <div class="scenario-box" style="margin:0 0 16px;">
+      <div class="scenario-title">案例 A</div>
+      <div class="scenario-body">5 天大新生兒，TOF，嚴重紫紺，SpO₂ 62%，但體重 <strong>1.8 kg</strong>（早產），肺動脈發育不良，合併染色體異常（非 22q11.2）。</div>
+    </div>
+    <div class="quiz-prompt">最適合的手術策略？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS1('q1',this,false,'fb-s1q1')">立即進行 Primary complete repair</button>
+      <button class="option-btn" onclick="answerS1('q1',this,true,'fb-s1q1')">先做姑息性手術（BT Shunt 或 RVOT 支架），等條件成熟再矯正</button>
+      <button class="option-btn" onclick="answerS1('q1',this,false,'fb-s1q1')">保守治療，等 3–6 個月再手術</button>
+      <button class="option-btn" onclick="answerS1('q1',this,false,'fb-s1q1')">直接進行肺動脈瓣置換術</button>
+    </div>
+    <div class="feedback-box" id="fb-s1q1"></div>
+  </div>
+
+  <div class="quiz-section" id="s1-q2" style="display:none">
+    <div class="scenario-box" style="margin:0 0 16px;">
+      <div class="scenario-title">案例 B</div>
+      <div class="scenario-body">4 個月大嬰兒，TOF，<strong>無症狀</strong>，SpO₂ 85%，體重 5.8 kg，肺動脈發育良好，無其他異常。</div>
+    </div>
+    <div class="quiz-prompt">最適合的手術策略？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS1('q2',this,false,'fb-s1q2')">先做 BT Shunt，等更大再矯正</button>
+      <button class="option-btn" onclick="answerS1('q2',this,true,'fb-s1q2')">選擇性完整矯正術（最佳時機：3–6 個月）</button>
+      <button class="option-btn" onclick="answerS1('q2',this,false,'fb-s1q2')">等到 1 歲再手術，讓心臟更成熟</button>
+      <button class="option-btn" onclick="answerS1('q2',this,false,'fb-s1q2')">先觀察追蹤，有症狀才處理</button>
+    </div>
+    <div class="feedback-box" id="fb-s1q2"></div>
+  </div>
+
+  <div class="quiz-section" id="s1-q3" style="display:none">
+    <div class="scenario-box" style="margin:0 0 16px;">
+      <div class="scenario-title">案例 C</div>
+      <div class="scenario-body">32 歲成人，TOF 矯正術後（8 個月大手術），現在出現<strong>運動喘、右心室擴大</strong>，心臟超音波顯示嚴重肺動脈瓣逆流，RV EF 42%。</div>
+    </div>
+    <div class="quiz-prompt">最可能需要的手術？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS1('q3',this,false,'fb-s1q3')">重新做一次 VSD 修補</button>
+      <button class="option-btn" onclick="answerS1('q3',this,false,'fb-s1q3')">BT Shunt 增加肺血流</button>
+      <button class="option-btn" onclick="answerS1('q3',this,true,'fb-s1q3')">肺動脈瓣置換術（PVR）— 手術或經導管</button>
+      <button class="option-btn" onclick="answerS1('q3',this,false,'fb-s1q3')">心臟移植評估</button>
+    </div>
+    <div class="feedback-box" id="fb-s1q3"></div>
+  </div>
+
+  <button class="next-btn" id="btn-1b-next" onclick="goTo('stage-2a')">進入 Stage 2 → 新生兒麻醉</button>
+</div>
+
+<!-- ═══════════════════════════════════════
+     STAGE 2A: 新生兒 / BT Shunt 麻醉
+═══════════════════════════════════════ -->
+<div class="stage" id="stage-2a">
+  <div class="stage-header">
+    <div class="stage-label">STAGE 2 — PART A</div>
+    <div class="stage-title">新生兒期：BT Shunt 的麻醉</div>
+    <div class="stage-sub">Blalock-Taussig Shunt — 為什麼做？怎麼麻醉？</div>
+  </div>
+  <div class="concept-section">
+    <div class="concept-card">
+      <div class="card-title">BT Shunt 是什麼？</div>
+      <div class="card-body">
+        在鎖骨下動脈<span class="en-term">Subclavian artery</span>和肺動脈之間放一條人工血管，<em>製造一條額外的肺血流路徑</em>。<br><br>
+        目的：讓更多血液進入肺部換氣，提升 SpO₂，讓寶寶撐到矯正術。<br><br>
+        現代多做 <em>Modified BT Shunt</em>（mBTS）：用 Gore-Tex 人工血管連接，可控制管徑大小。
+      </div>
+    </div>
+    <div class="concept-card warn">
+      <div class="card-title">麻醉核心挑戰：Qp/Qs 平衡</div>
+      <div class="card-body">
+        BT Shunt 手術中，麻醉師要維持的不是「正常血壓」，而是<em>Qp/Qs 的平衡</em>。<br><br>
+        <em>Shunt 太多（Qp/Qs 太高）</em>：肺血流過多 → 體循環「被偷走」 → 低血壓、代謝性酸中毒<br>
+        <em>Shunt 太少（Qp/Qs 太低）</em>：肺血流不足 → SpO₂ 仍然很低 → 缺氧持續<br><br>
+        目標：SpO₂ 維持在 <em>75–85%</em>（不追求正常值）
+      </div>
+    </div>
+    <div class="concept-card danger">
+      <div class="card-title">新生兒期 CPB 的額外風險</div>
+      <div class="card-body">
+        新生兒心肺繞道<span class="en-term">Cardiopulmonary Bypass, CPB</span>風險特別高：<br><br>
+        <em>低體重</em>：體外循環管路血液稀釋效應更大，凝血因子耗損更嚴重<br>
+        <em>腦部發育未完全</em>：低溫和 CPB 對神經系統的長期影響更顯著<br>
+        <em>器官功能不成熟</em>：腎、肝對低灌流的耐受度差<br><br>
+        這是為什麼高風險新生兒<em>優先選姑息手術</em>而非直接矯正的原因。
+      </div>
+    </div>
+    <div class="concept-card good">
+      <div class="card-title">麻醉注意事項</div>
+      <div class="card-body">
+        <em>術側手臂不能量血壓</em>：BT Shunt 做在患側鎖骨下動脈，術中和術後患側手臂血壓會偽性降低<br>
+        → 必須在<em>對側手臂或下肢</em>監測血壓，反映真實中央主動脈壓<br><br>
+        <em>吸入氧濃度（FiO₂）管理</em>：高 FiO₂ 會降低肺血管阻力 → Qp↑ → 體循環血流被偷走<br>
+        → 通常使用 <em>空氣 + 低 FiO₂</em> 以維持肺-體循環平衡<br><br>
+        <em>動脈監測</em>：建議非患側動脈留置，術中連續監測
+      </div>
+    </div>
+  </div>
+  <button class="next-btn show" onclick="goTo('stage-2b')">繼續 → 情境測驗</button>
+</div>
+
+<!-- STAGE 2B: BT Shunt 測驗 -->
+<div class="stage" id="stage-2b">
+  <div class="stage-header">
+    <div class="stage-label">STAGE 2 — PART B</div>
+    <div class="stage-title">BT Shunt 情境測驗</div>
+    <div class="stage-sub">術中警報，你的判斷？</div>
+  </div>
+
+  <div class="quiz-section" id="s2-q1">
+    <div class="scenario-box" style="margin:0 0 16px;">
+      <div class="scenario-title">情境</div>
+      <div class="scenario-body">BT Shunt 術後 1 小時，SpO₂ <strong>98%</strong>，血壓 <strong>52/30 mmHg</strong>，代謝性酸中毒（BE -8），尿量很少。嬰兒看起來蒼白。</div>
+    </div>
+    <div class="quiz-prompt">這個情況最可能是什麼問題？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS2('q1',this,false,'fb-s2q1')">Shunt 太小，肺血流不足</button>
+      <button class="option-btn" onclick="answerS2('q1',this,true,'fb-s2q1')">Shunt 太大，肺血流過多，體循環血流被偷走（Qp/Qs 失衡）</button>
+      <button class="option-btn" onclick="answerS2('q1',this,false,'fb-s2q1')">術後出血，容積不足</button>
+      <button class="option-btn" onclick="answerS2('q1',this,false,'fb-s2q1')">Tet Spell 再發</button>
+    </div>
+    <div class="feedback-box" id="fb-s2q1"></div>
+  </div>
+
+  <div class="quiz-section" id="s2-q2" style="display:none">
+    <div class="quiz-prompt">BT Shunt 手術中，右臂血壓 58/32 mmHg，左臂血壓 82/50 mmHg。你應該怎麼做？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS2('q2',this,false,'fb-s2q2')">以右臂血壓為準，給予升壓藥</button>
+      <button class="option-btn" onclick="answerS2('q2',this,true,'fb-s2q2')">以左臂血壓為準（右側為 shunt 患側，血壓偽性降低），告知團隊右臂數值不可靠</button>
+      <button class="option-btn" onclick="answerS2('q2',this,false,'fb-s2q2')">兩臂取平均值作為參考</button>
+      <button class="option-btn" onclick="answerS2('q2',this,false,'fb-s2q2')">換到下肢量測後再決定</button>
+    </div>
+    <div class="feedback-box" id="fb-s2q2"></div>
+  </div>
+
+  <button class="next-btn" id="btn-2b-next" onclick="goTo('stage-2c')">查看 Stage 2 重點整理</button>
+</div>
+
+<!-- STAGE 2C: Stage 2 總結 -->
+<div class="stage" id="stage-2c">
+  <div class="summary">
+    <div class="summary-icon">★</div>
+    <div class="summary-title">Stage 2 完成！</div>
+    <div class="score-badge" id="s2-score">答題成績 載入中…</div>
+    <div class="summary-body">BT Shunt 的核心：不是追求正常 SpO₂，而是維持 Qp/Qs 平衡。</div>
+    <div class="step-list" id="s2-review" style="text-align:left;max-width:320px;margin:0 auto 24px;">
+      <div class="step-item" id="s2r1"><div class="step-num">1</div><div class="step-content">BT Shunt 目標 SpO₂：<em>75–85%</em>，不追求正常值</div></div>
+      <div class="step-item" id="s2r2"><div class="step-num">2</div><div class="step-content">SpO₂ 高 + 低血壓 + 酸中毒 = <em>Shunt 太大</em>，體循環被偷走</div></div>
+      <div class="step-item" id="s2r3"><div class="step-num">3</div><div class="step-content">患側手臂血壓偽性降低 → 監測血壓必須用<em>對側肢體</em></div></div>
+      <div class="step-item" id="s2r4"><div class="step-num">4</div><div class="step-content">高 FiO₂ 讓肺血管阻力降低 → Qp↑ → 用<em>低 FiO₂</em> 維持平衡</div></div>
+    </div>
+    <button class="next-btn show" style="position:static;width:auto;padding:14px 32px;display:inline-block;" onclick="goTo('stage-3a')">進入 Stage 3 → 3–6 個月完整矯正術</button>
+  </div>
+</div>
+
+<!-- STAGE 3A: 3-6個月完整矯正術 -->
+<div class="stage" id="stage-3a">
+  <div class="stage-header">
+    <div class="stage-label">STAGE 3 — PART A</div>
+    <div class="stage-title">3–6 個月：選擇性完整矯正術</div>
+    <div class="stage-sub">最佳手術時機，多模式麻醉策略</div>
+  </div>
+  <div class="concept-section">
+    <div class="concept-card good">
+      <div class="card-title">為什麼 3–6 個月是最佳時機？</div>
+      <div class="card-body">
+        技術上比新生兒期容易（體重更大、解剖更清楚）<br>
+        <em>住院時間更短</em>、不良事件發生率更低<br>
+        減少需要<em>跨瓣環補片</em><span class="en-term">Transannular Patch, TAP</span>的機會<br>
+        避免 RVH 過度——RVH 越嚴重，術後心室功能恢復越慢<br><br>
+        分階段修補（先姑息再矯正）的累積住院時間是直接矯正的<em>近兩倍</em>（32 天 vs 19 天）
+      </div>
+    </div>
+    <div class="concept-card">
+      <div class="card-title">多模式麻醉方案</div>
+      <div class="card-body">
+        核心策略：<em>限制呼吸抑制劑 → 促進早期拔管</em><br><br>
+        <em>Dexmedetomidine</em>：唯一持續被研究證實可縮短術後呼吸器使用時間的藥物<br>
+        → 鎮靜、鎮痛、降低交感張力，不壓制呼吸<br><br>
+        <em>區域麻醉技術</em>：<br>
+        豎脊肌平面阻滯<span class="en-term">Erector Spinae Plane Block, ESPB</span><br>
+        橫胸肌平面阻滯<span class="en-term">Transversus Thoracis Plane Block, TTPB</span><br>
+        → 有效減少鴉片類藥物使用，降低術後呼吸抑制風險
+      </div>
+    </div>
+    <div class="concept-card warn">
+      <div class="card-title">術後 JET 預防：Esmolol 的角色</div>
+      <div class="card-body">
+        交界性異位性心動過速<span class="en-term">Junctional Ectopic Tachycardia, JET</span>是 TOF 矯正術後最常見的嚴重心律不整。<br><br>
+        研究顯示：術後<em>常規使用 Esmolol</em>（短效 β 阻斷劑）可維持血流動力學穩定、<em>減少 JET 發生率</em>。<br><br>
+        機制：Esmolol 降低心率 → 充填時間↑ → 心輸出量改善 → 也抑制 RVOT 的自律性增高
+      </div>
+    </div>
+    <div class="concept-card">
+      <div class="card-title">術中評估標準</div>
+      <div class="card-body">
+        體外循環撤除後，TEE 確認：<br>
+        <em>RV 壓力應 &lt; 70–80% 主動脈壓</em>（若超過，表示 RVOT 解除不完全）<br>
+        VSD 修補完整性（無殘存分流）<br>
+        雙心室功能評估<br><br>
+        RV 壓力比 &gt; 70–80% → 需要外科重新評估 RVOT
+      </div>
+    </div>
+  </div>
+  <button class="next-btn show" onclick="goTo('stage-3b')">繼續 → 情境測驗</button>
+</div>
+
+<!-- STAGE 3B: 矯正術測驗 -->
+<div class="stage" id="stage-3b">
+  <div class="stage-header">
+    <div class="stage-label">STAGE 3 — PART B</div>
+    <div class="stage-title">完整矯正術情境測驗</div>
+    <div class="stage-sub">體外循環撤除後，你的判斷？</div>
+  </div>
+
+  <div class="quiz-section" id="s3-q1">
+    <div class="scenario-box" style="margin:0 0 16px;">
+      <div class="scenario-title">情境 A</div>
+      <div class="scenario-body">5 個月大嬰兒，TOF 完整矯正術，體外循環撤除後，TEE 顯示 VSD 修補完整，但 RV 壓力 = <strong>主動脈壓的 85%</strong>。</div>
+    </div>
+    <div class="quiz-prompt">這個數值代表什麼？應該怎麼做？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS3('q1',this,false,'fb-s3q1')">RV 壓力比在可接受範圍，繼續觀察</button>
+      <button class="option-btn" onclick="answerS3('q1',this,true,'fb-s3q1')">超過 70–80% 標準，RVOT 解除可能不完全，需告知外科醫師重新評估</button>
+      <button class="option-btn" onclick="answerS3('q1',this,false,'fb-s3q1')">這是術後暫時性高壓，給 Milrinone 等待改善</button>
+      <button class="option-btn" onclick="answerS3('q1',this,false,'fb-s3q1')">立即給 Phenylephrine 升高體循環壓力讓比值看起來更好</button>
+    </div>
+    <div class="feedback-box" id="fb-s3q1"></div>
+  </div>
+
+  <div class="quiz-section" id="s3-q2" style="display:none">
+    <div class="scenario-box" style="margin:0 0 16px;">
+      <div class="scenario-title">情境 B</div>
+      <div class="scenario-body">術後 2 小時，心電圖顯示心跳 <strong>162 bpm</strong>，QRS 窄，P 波與 QRS 解離，血壓 76/48 mmHg，心輸出量監測顯示下降。</div>
+    </div>
+    <div class="quiz-prompt">診斷與處置優先序？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS3('q2',this,false,'fb-s3q2')">竇性心搏過速，給止痛藥觀察</button>
+      <button class="option-btn" onclick="answerS3('q2',this,true,'fb-s3q2')">JET — 降溫至 35°C、補充 K⁺ / Mg²⁺、考慮 Amiodarone；若有 Esmolol 已預防性使用則評估效果</button>
+      <button class="option-btn" onclick="answerS3('q2',this,false,'fb-s3q2')">心室頻脈，準備同步電擊</button>
+      <button class="option-btn" onclick="answerS3('q2',this,false,'fb-s3q2')">完全性 AV block，啟動心外膜節律器</button>
+    </div>
+    <div class="feedback-box" id="fb-s3q2"></div>
+  </div>
+
+  <button class="next-btn" id="btn-3b-next" onclick="goTo('stage-3c')">查看 Stage 3 重點整理</button>
+</div>
+
+<!-- STAGE 3C: Stage 3 總結 -->
+<div class="stage" id="stage-3c">
+  <div class="summary">
+    <div class="summary-icon">★</div>
+    <div class="summary-title">Stage 3 完成！</div>
+    <div class="score-badge" id="s3-score">答題成績 載入中…</div>
+    <div class="summary-body">3–6 個月矯正術：最佳時機，多模式策略，術後警覺 JET。</div>
+    <div class="step-list" id="s3-review" style="text-align:left;max-width:320px;margin:0 auto 24px;">
+      <div class="step-item" id="s3r1"><div class="step-num">1</div><div class="step-content"><em>Dexmedetomidine</em> 是唯一證實縮短呼吸器時間的藥物</div></div>
+      <div class="step-item" id="s3r2"><div class="step-num">2</div><div class="step-content">區域麻醉（ESPB / TTPB）減少 opioid，促進早期拔管</div></div>
+      <div class="step-item" id="s3r3"><div class="step-num">3</div><div class="step-content">術後 RV 壓力比 &gt; <em>70–80%</em> Ao 壓 → RVOT 解除不完全</div></div>
+      <div class="step-item" id="s3r4"><div class="step-num">4</div><div class="step-content">JET：快速窄 QRS + P 波解離 → <em>降溫 + 電解質 + Amiodarone</em></div></div>
+    </div>
+    <button class="next-btn show" style="position:static;width:auto;padding:14px 32px;display:inline-block;" onclick="goTo('stage-4a')">進入 Stage 4 → 成人 TOF 二次手術</button>
+  </div>
+</div>
+
+<!-- STAGE 4A: 成人 TOF / PVR -->
+<div class="stage" id="stage-4a">
+  <div class="stage-header">
+    <div class="stage-label">STAGE 4 — PART A</div>
+    <div class="stage-title">成人 TOF：二次手術麻醉</div>
+    <div class="stage-sub">肺動脈瓣置換術（PVR）— 最常見的成人再介入手術</div>
+  </div>
+  <div class="concept-section">
+    <div class="concept-card warn">
+      <div class="card-title">為什麼需要 PVR？</div>
+      <div class="card-body">
+        TOF 矯正術常需要切開或擴大 RVOT，導致術後<em>肺動脈瓣逆流（PR）</em>。<br><br>
+        長期 PR → RV 容積超載 → <em>RV 擴大 → RV 功能下降</em><br><br>
+        PVR 適應症（符合至少 2 項）：<br>
+        <em>RV 收縮末期容積指數 &gt; 80 mL/m²</em><br>
+        RV 舒張末期容積 ≥ 2倍 LV 舒張末期容積<br>
+        <em>RV EF ≤ 46%</em><br>
+        LV EF ≤ 50%<br>
+        運動耐力進行性下降
+      </div>
+    </div>
+    <div class="concept-card">
+      <div class="card-title">TPVR vs SPVR</div>
+      <div class="card-body">
+        <em>TPVR</em><span class="en-term">Transcatheter PVR</span>：經導管，微創，適合有適當解剖條件者<br>
+        <em>SPVR</em><span class="en-term">Surgical PVR</span>：開胸手術，適用於合併其他需手術修復問題者<br><br>
+        術前建議先做<em>電生理檢查</em>：約 <em>25% 病人</em>可發現可處理的心律不整基質（尤其 VT）<br>
+        → 若有，在 PVR 同時一併處理，避免術後猝死風險
+      </div>
+    </div>
+    <div class="concept-card danger">
+      <div class="card-title">成人 TOF 麻醉的特殊挑戰</div>
+      <div class="card-body">
+        <em>誘導時最危險</em>：已擴大的 RV 對 SVR 驟降耐受度極差<br><br>
+        誘導藥物選擇：<br>
+        <em>Etomidate</em>：對血流動力學影響最小，是成人 ACHD 誘導首選之一<br>
+        <em>Propofol</em>：謹慎使用，緩慢給藥，避免快速推注<br><br>
+        高風險病人（嚴重 RV 擴大、低 RV EF）：<br>
+        → 考慮預防性準備<em>周邊 VA-ECMO</em>（體外膜氧合），萬一心臟無法撐過誘導或手術可立即啟動
+      </div>
+    </div>
+    <div class="concept-card purple">
+      <div class="card-title">成人 ACHD 特殊監測考量</div>
+      <div class="card-body">
+        <em>動脈導管位置</em>：既往 BT Shunt 的患側手臂血壓偽性低 → 必須對側或股動脈<br><br>
+        <em>靜脈通路</em>：許多成人因兒童期多次心導管，股靜脈/動脈可能閉塞 → 術前評估血管解剖<br><br>
+        <em>心外膜節律器位置</em>：可能在橫膈下方，腹部手術前需影像確認位置<br><br>
+        <em>靜脈輸液過濾器</em>：有殘存分流者必用（矛盾性栓塞預防）
+      </div>
+    </div>
+  </div>
+  <button class="next-btn show" onclick="goTo('stage-4b')">繼續 → 情境測驗</button>
+</div>
+
+<!-- STAGE 4B: 成人 TOF 測驗 -->
+<div class="stage" id="stage-4b">
+  <div class="stage-header">
+    <div class="stage-label">STAGE 4 — PART B</div>
+    <div class="stage-title">成人 TOF 情境測驗</div>
+    <div class="stage-sub">兩個高風險情境，考驗你的臨床判斷</div>
+  </div>
+
+  <div class="quiz-section" id="s4-q1">
+    <div class="scenario-box" style="margin:0 0 16px;">
+      <div class="scenario-title">情境 A</div>
+      <div class="scenario-body">28 歲 TOF 矯正後，進行外科 PVR 術前評估。RV EF <strong>38%</strong>，RV 明顯擴大。麻醉科醫師在誘導藥物選擇上需要特別考量。</div>
+    </div>
+    <div class="quiz-prompt">最適合的誘導策略？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS4('q1',this,false,'fb-s4q1')">Propofol 2 mg/kg 快速推注，快速誘導減少病人不適</button>
+      <button class="option-btn" onclick="answerS4('q1',this,true,'fb-s4q1')">Etomidate 為主，緩慢給藥，備好 Phenylephrine，高風險者考慮預防性 VA-ECMO 備用</button>
+      <button class="option-btn" onclick="answerS4('q1',this,false,'fb-s4q1')">Ketamine 2 mg/kg，交感刺激可以維持血壓</button>
+      <button class="option-btn" onclick="answerS4('q1',this,false,'fb-s4q1')">Thiopental 誘導，作用快、可控性高</button>
+    </div>
+    <div class="feedback-box" id="fb-s4q1"></div>
+  </div>
+
+  <div class="quiz-section" id="s4-q2" style="display:none">
+    <div class="scenario-box" style="margin:0 0 16px;">
+      <div class="scenario-title">情境 B</div>
+      <div class="scenario-body">同一病人，術前電生理檢查發現<strong>可誘發的持續性心室頻脈（VT）</strong>。外科醫師說只是來換瓣膜，不需要處理 VT。</div>
+    </div>
+    <div class="quiz-prompt">你作為麻醉護理師，知道這個資訊的意義是什麼？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS4('q2',this,false,'fb-s4q2')">電生理問題交給心臟科，麻醉不需要額外準備</button>
+      <button class="option-btn" onclick="answerS4('q2',this,true,'fb-s4q2')">VT 基質存在 → 術中/術後 VT 風險高，需備好去顫器、Amiodarone，建議術前討論是否同時做電生理消融</button>
+      <button class="option-btn" onclick="answerS4('q2',this,false,'fb-s4q2')">只要不發作就不需要特別處理</button>
+      <button class="option-btn" onclick="answerS4('q2',this,false,'fb-s4q2')">預防性給 Lidocaine 滴注就足夠</button>
+    </div>
+    <div class="feedback-box" id="fb-s4q2"></div>
+  </div>
+
+  <button class="next-btn" id="btn-4b-next" onclick="goTo('stage-4c')">查看 Stage 4 重點整理</button>
+</div>
+
+<!-- STAGE 4C: Stage 4 總結 -->
+<div class="stage" id="stage-4c">
+  <div class="summary">
+    <div class="summary-icon">★</div>
+    <div class="summary-title">Stage 4 完成！</div>
+    <div class="score-badge" id="s4-score">答題成績 載入中…</div>
+    <div class="summary-body">成人 TOF：RV 已脆弱，誘導要輕、備藥要齊、電生理要問清楚。</div>
+    <div class="step-list" id="s4-review" style="text-align:left;max-width:320px;margin:0 auto 24px;">
+      <div class="step-item" id="s4r1"><div class="step-num">1</div><div class="step-content">誘導首選 <em>Etomidate</em>，血流動力學影響最小</div></div>
+      <div class="step-item" id="s4r2"><div class="step-num">2</div><div class="step-content">高風險 RV（EF ≤ 46%）→ 考慮預防性 <em>VA-ECMO</em> 備用</div></div>
+      <div class="step-item" id="s4r3"><div class="step-num">3</div><div class="step-content">PVR 前術前電生理檢查：<em>25%</em> 可發現可處理的 VT 基質</div></div>
+      <div class="step-item" id="s4r4"><div class="step-num">4</div><div class="step-content">患側手臂血壓偽低 → 動脈導管放<em>對側或股動脈</em></div></div>
+    </div>
+    <button class="next-btn show" style="position:static;width:auto;padding:14px 32px;display:inline-block;" onclick="goTo('stage-5a')">進入 Stage 5 → 監測策略總覽</button>
+  </div>
+</div>
+
+<!-- STAGE 5A: 監測策略 -->
+<div class="stage" id="stage-5a">
+  <div class="stage-header">
+    <div class="stage-label">STAGE 5 — PART A</div>
+    <div class="stage-title">監測策略：什麼時候要放什麼？</div>
+    <div class="stage-sub">動脈導管、CVP、TEE 的決策邏輯</div>
+  </div>
+  <div class="concept-section">
+    <div class="concept-card">
+      <div class="card-title">基本監測（所有 TOF 病人）</div>
+      <div class="card-body">
+        ECG、無創血壓、SpO₂、ETCO₂、體溫<br><br>
+        <em>體溫對嬰幼兒特別重要</em>：加溫毯、床墊、適當包裹、提高室溫<br>
+        NIRS<span class="en-term">近紅外光譜</span>：腦氧監測，適用於複雜手術或高風險病人
+      </div>
+    </div>
+  </div>
+
+  <!-- Monitoring accordion -->
+  <div class="concept-section" style="padding-top:0">
+    <div class="diff-card" onclick="toggleDiff('m1')">
+      <div class="diff-header">
+        <div class="diff-icon" style="background:rgba(94,234,212,0.15);color:#5eead4;">A-line</div>
+        <div><div class="diff-title">動脈導管</div><div class="diff-sub">何時必放？放哪裡？</div></div>
+        <div class="diff-arrow" id="darrm1">▶</div>
+      </div>
+      <div class="diff-body" id="dbodym1">
+        <div class="diff-item"><em>所有高風險病人應使用持續侵入性動脈血壓監測</em><br>決策依據：基礎 RV 功能、靜息氧合狀態、心律不整傾向
+          <span class="diff-clue">高風險：嚴重 PR、RV EF 下降、肺高壓、需要 CPB 的手術</span></div>
+        <div class="diff-item"><em>位置選擇的陷阱</em>：既往 BT Shunt 的患側手臂，鎖骨下動脈血流已改道，血壓會偽性降低<br>→ 必須放在<em>對側手臂或股動脈</em>，才能反映真實中央主動脈壓
+          <span class="diff-clue">術前一定要確認哪側做過 BT Shunt！</span></div>
+      </div>
+    </div>
+
+    <div class="diff-card" onclick="toggleDiff('m2')">
+      <div class="diff-header">
+        <div class="diff-icon" style="background:rgba(251,191,36,0.15);color:#fbbf24;">CVP</div>
+        <div><div class="diff-title">中心靜脈導管</div><div class="diff-sub">CVP 變化的臨床意義</div></div>
+        <div class="diff-arrow" id="darrm2">▶</div>
+      </div>
+      <div class="diff-body" id="dbodym2">
+        <div class="diff-item">決策依據：RV 功能不全和肺高壓的嚴重程度、手術風險、麻醉師解讀能力</div>
+        <div class="diff-item"><em>CVP↑ + 低血壓</em>：RV 功能惡化，需要正性肌力支持（Milrinone、Dopamine）</div>
+        <div class="diff-item"><em>CVP↓ + 低血壓</em>：前負荷減少，需要容積補充</div>
+        <div class="diff-item"><em>失去 x 下降、大 v 波</em>：新發右心衰竭或三尖瓣逆流惡化的早期警訊</div>
+      </div>
+    </div>
+
+    <div class="diff-card" onclick="toggleDiff('m3')">
+      <div class="diff-header">
+        <div class="diff-icon" style="background:rgba(110,231,183,0.15);color:#6ee7b7;">TEE</div>
+        <div><div class="diff-title">經食道超音波</div><div class="diff-sub">即時評估心臟功能</div></div>
+        <div class="diff-arrow" id="darrm3">▶</div>
+      </div>
+      <div class="diff-body" id="dbodym3">
+        <div class="diff-item">適用於：<em>重大、長時間、高風險手術的全身麻醉</em></div>
+        <div class="diff-item">可即時評估：雙心室功能、估計肺動脈收縮壓、VSD 修補完整性（術後確認）</div>
+        <div class="diff-item"><em>TOF 矯正術後</em>：TEE 確認 RV/Ao 壓力比 &lt; 70–80%、無殘存 VSD 分流</div>
+      </div>
+    </div>
+
+    <div class="diff-card" onclick="toggleDiff('m4')">
+      <div class="diff-header">
+        <div class="diff-icon" style="background:rgba(248,113,113,0.15);color:#f87171;">PAC</div>
+        <div><div class="diff-title">肺動脈導管</div><div class="diff-sub">通常弊大於利</div></div>
+        <div class="diff-arrow" id="darrm4">▶</div>
+      </div>
+      <div class="diff-body" id="dbodym4">
+        <div class="diff-item"><em>Eisenmenger 症候群：風險通常大於益處</em></div>
+        <div class="diff-item">風險：可能觸發<em>心律不整</em>、可能導致<em>矛盾性栓塞</em>（來自微血栓或原位肺血栓）</div>
+        <div class="diff-item">因肺動脈壓力等於無創測量的血壓，且肺血管阻力相對固定，<em>PAC 資訊價值有限</em></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="next-btn show" onclick="goTo('stage-5b')">繼續 → 監測測驗</button>
+</div>
+
+<!-- STAGE 5B: 監測測驗 -->
+<div class="stage" id="stage-5b">
+  <div class="stage-header">
+    <div class="stage-label">STAGE 5 — PART B</div>
+    <div class="stage-title">監測情境判斷</div>
+    <div class="stage-sub">看數值、選處置</div>
+  </div>
+
+  <div class="quiz-section" id="s5-q1">
+    <div class="quiz-prompt">TOF 矯正術後 2 小時，CVP 由 8 升至 18 mmHg，血壓 62/38 mmHg，尿量 0.2 mL/kg/hr。處置方向？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS5('q1',this,false,'fb-s5q1')">CVP 升高代表前負荷充足，快速給 500 mL 生理食鹽水</button>
+      <button class="option-btn" onclick="answerS5('q1',this,true,'fb-s5q1')">CVP↑ + 低血壓 = RV 功能惡化，需正性肌力支持（Milrinone）+ 謹慎液體管理，而非大量補液</button>
+      <button class="option-btn" onclick="answerS5('q1',this,false,'fb-s5q1')">CVP 太高，給 Furosemide 利尿降低前負荷</button>
+      <button class="option-btn" onclick="answerS5('q1',this,false,'fb-s5q1')">給 Norepinephrine 升壓，CVP 升高不需處理</button>
+    </div>
+    <div class="feedback-box" id="fb-s5q1"></div>
+  </div>
+
+  <div class="quiz-section" id="s5-q2" style="display:none">
+    <div class="quiz-prompt">紫紺型 TOF（未矯正）病人進行腹部手術。靜脈輸液管路需要特別注意什麼？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS5('q2',this,false,'fb-s5q2')">選用最大孔徑的靜脈留置針，確保輸液速度</button>
+      <button class="option-btn" onclick="answerS5('q2',this,true,'fb-s5q2')">必須使用靜脈輸液過濾器，嚴格去除管路內空氣，預防矛盾性栓塞</button>
+      <button class="option-btn" onclick="answerS5('q2',this,false,'fb-s5q2')">選擇頸內靜脈作為中心靜脈通路，其他無特殊需求</button>
+      <button class="option-btn" onclick="answerS5('q2',this,false,'fb-s5q2')">使用動脈端留置針監測血壓，靜脈管路無特殊要求</button>
+    </div>
+    <div class="feedback-box" id="fb-s5q2"></div>
+  </div>
+
+  <button class="next-btn" id="btn-5b-next" onclick="goTo('stage-6a')">進入 Stage 6 → 完整案例串連</button>
+</div>
+
+<!-- STAGE 6A: 完整案例串連 -->
+<div class="stage" id="stage-6a">
+  <div class="stage-header">
+    <div class="stage-label">STAGE 6 — FINAL</div>
+    <div class="stage-title">完整案例：小明的 30 年</div>
+    <div class="stage-sub">同一個病人，三個人生階段，三個麻醉決策</div>
+  </div>
+  <div class="concept-section">
+    <div class="concept-card" style="border-left: 3px solid var(--accent4);">
+      <div class="card-title" style="color:var(--accent4);">案例介紹</div>
+      <div class="card-body">
+        小明，診斷：法洛氏四重症（TOF），嚴重 PS，大 VSD。<br><br>
+        <em>出生後 2 週</em>：嚴重紫紺，SpO₂ 58%，體重 2.1 kg，早產，肺動脈發育不良<br>
+        <em>5 個月大</em>：狀況穩定後接受完整矯正術<br>
+        <em>32 歲</em>：出現運動喘，診斷嚴重肺動脈瓣逆流，RV EF 40%
+      </div>
+    </div>
+  </div>
+
+  <div class="quiz-section" id="s6-q1">
+    <div class="quiz-prompt">第一關｜出生後 2 週，外科建議先做姑息手術。下列哪個條件「最直接」讓你選擇姑息而非 Primary repair？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS6('q1',this,false,'fb-s6q1')">SpO₂ 只有 58%，非常低</button>
+      <button class="option-btn" onclick="answerS6('q1',this,true,'fb-s6q1')">體重 2.1 kg（早產）+ 肺動脈發育不良 + 染色體可能異常 → 多個高風險因素</button>
+      <button class="option-btn" onclick="answerS6('q1',this,false,'fb-s6q1')">出生後只有 2 週，手術技術上太困難</button>
+      <button class="option-btn" onclick="answerS6('q1',this,false,'fb-s6q1')">家屬不同意做大手術</button>
+    </div>
+    <div class="feedback-box" id="fb-s6q1"></div>
+  </div>
+
+  <div class="quiz-section" id="s6-q2" style="display:none">
+    <div class="quiz-prompt">第二關｜5 個月大完整矯正術。術後你在 ICU 班，發現動脈導管（放在右手）血壓 46/28 mmHg，但病人看起來還好，SpO₂ 97%，左腳股動脈量 82/50 mmHg。問題是什麼？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS6('q2',this,true,'fb-s6q2')">新生兒期 BT Shunt 做在右側，右手動脈導管測到的是偽性低值，真實血壓是股動脈的 82/50 mmHg</button>
+      <button class="option-btn" onclick="answerS6('q2',this,false,'fb-s6q2')">右手動脈導管位置不良，重新置放</button>
+      <button class="option-btn" onclick="answerS6('q2',this,false,'fb-s6q2')">RV 衰竭導致體循環灌流不足，需要正性肌力支持</button>
+      <button class="option-btn" onclick="answerS6('q2',this,false,'fb-s6q2')">兩個數值都不準，換無創血壓監測</button>
+    </div>
+    <div class="feedback-box" id="fb-s6q2"></div>
+  </div>
+
+  <div class="quiz-section" id="s6-q3" style="display:none">
+    <div class="quiz-prompt">第三關｜32 歲，準備做外科 PVR。術前電生理檢查發現可誘發 VT，RV EF 40%。誘導前你需要確認備妥哪兩樣最關鍵的東西？</div>
+    <div class="options-grid">
+      <button class="option-btn" onclick="answerS6('q3',this,false,'fb-s6q3')">大量輸血備血 + 備好 Atropine</button>
+      <button class="option-btn" onclick="answerS6('q3',this,true,'fb-s6q3')">去顫器就位 + Amiodarone 備妥（VT 風險）；高風險 RV 考慮 VA-ECMO 備用討論</button>
+      <button class="option-btn" onclick="answerS6('q3',this,false,'fb-s6q3')">Propofol 快速誘導 + 備好 Phenylephrine</button>
+      <button class="option-btn" onclick="answerS6('q3',this,false,'fb-s6q3')">備好 Protamine（抗凝逆轉）+ Heparin</button>
+    </div>
+    <div class="feedback-box" id="fb-s6q3"></div>
+  </div>
+
+  <button class="next-btn" id="btn-6a-next" onclick="goTo('stage-final')">查看完整學習成果 →</button>
+</div>
+
+<!-- FINAL -->
+<div class="stage" id="stage-final">
+  <div class="summary">
+    <div style="display:flex;justify-content:center;gap:14px;margin-bottom:20px;" id="final-stars">
+      <span class="fstar" id="fs1" style="font-size:38px;color:#2e3858;transition:all 0.5s;">★</span>
+      <span class="fstar" id="fs2" style="font-size:38px;color:#2e3858;transition:all 0.5s;">★</span>
+      <span class="fstar" id="fs3" style="font-size:38px;color:#2e3858;transition:all 0.5s;">★</span>
+    </div>
+    <div class="summary-title">全部完成！</div>
+    <div style="font-family:'SF Mono', 'Fira Code', 'Consolas', monospace;font-size:14px;color:var(--text-muted);margin-bottom:16px;letter-spacing:1px;">TOF 手術 × 麻醉策略</div>
+    <div class="score-badge" id="final-score">總成績 計算中…</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:340px;margin:24px auto;text-align:left;" id="final-grid">
+      <div class="cg-card" style="opacity:0;transform:translateY(8px);transition:all 0.4s;" id="fc1">
+        <div class="cg-card" style="border:none;padding:0;background:none;">
+          <div style="font-family:'SF Mono', 'Fira Code', 'Consolas', monospace;font-size:11px;color:#fbbf24;letter-spacing:1px;margin-bottom:5px;">STAGE 1</div>
+          <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:5px;">手術時機</div>
+          <div style="font-size:14px;color:var(--text-dim);">新生兒→嬰兒→成人，依風險選路線</div>
+        </div>
+      </div>
+      <div class="cg-card" style="opacity:0;transform:translateY(8px);transition:all 0.4s;" id="fc2">
+        <div style="font-family:'SF Mono', 'Fira Code', 'Consolas', monospace;font-size:9px;color:#f87171;letter-spacing:1px;margin-bottom:5px;">STAGE 2</div>
+        <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:5px;">BT Shunt</div>
+        <div style="font-size:14px;color:var(--text-dim);">Qp/Qs 平衡，患側血壓陷阱</div>
+      </div>
+      <div class="cg-card" style="opacity:0;transform:translateY(8px);transition:all 0.4s;" id="fc3">
+        <div style="font-family:'SF Mono', 'Fira Code', 'Consolas', monospace;font-size:9px;color:#6ee7b7;letter-spacing:1px;margin-bottom:5px;">STAGE 3</div>
+        <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:5px;">完整矯正術</div>
+        <div style="font-size:14px;color:var(--text-dim);">Dex + 區域麻醉 + JET 預防</div>
+      </div>
+      <div class="cg-card" style="opacity:0;transform:translateY(8px);transition:all 0.4s;" id="fc4">
+        <div style="font-family:'SF Mono', 'Fira Code', 'Consolas', monospace;font-size:9px;color:#a78bfa;letter-spacing:1px;margin-bottom:5px;">STAGE 4</div>
+        <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:5px;">成人 PVR</div>
+        <div style="font-size:14px;color:var(--text-dim);">Etomidate，VA-ECMO 備用，EP 檢查</div>
+      </div>
+      <div class="cg-card" style="opacity:0;transform:translateY(8px);transition:all 0.4s;grid-column:span 2;" id="fc5">
+        <div style="font-family:'SF Mono', 'Fira Code', 'Consolas', monospace;font-size:9px;color:#5eead4;letter-spacing:1px;margin-bottom:5px;">STAGE 5</div>
+        <div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:5px;">監測策略</div>
+        <div style="font-size:14px;color:var(--text-dim);">A-line 位置 / CVP 判讀 / TEE 時機 / 靜脈過濾器</div>
+      </div>
+    </div>
+
+    <div style="margin:0 auto 24px;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:14px;max-width:320px;text-align:left;">
+      <div style="font-family:'SF Mono', 'Fira Code', 'Consolas', monospace;font-size:10px;color:var(--text-muted);letter-spacing:1px;margin-bottom:12px;">麻醉護理師的三個核心記憶點</div>
+      <div style="font-size:17px;line-height:2.1;color:#e8edf8;">
+        <span style="color:var(--accent4);">①</span> BT Shunt 術後：<strong>患側手臂血壓不可信</strong><br>
+        <span style="color:var(--accent4);">②</span> 紫紺型病人：<strong>靜脈管路必加過濾器</strong><br>
+        <span style="color:var(--accent4);">③</span> 成人 TOF 誘導：<strong>Etomidate + 備好去顫器</strong>
+      </div>
+    </div>
+
+    <div style="font-size:14px;color:var(--text-muted);line-height:1.8;">
+      設計：<span style="color:var(--text-dim);">麻醉專科護理師（CRNA）</span><br>
+      基於臨床文獻 · 供教學用途
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+var scores = { s1:0, s2:0, s3:0, s4:0, s5:0, s6:0 };
+var answered = {};
+
+function goTo(id) {
+  var stages = document.querySelectorAll('.stage');
+  for (var i = 0; i < stages.length; i++) stages[i].classList.remove('active');
+  var el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  window.scrollTo(0, 0);
+  updateDots(id);
+  if (id === 'stage-1a') setTimeout(revealTimeline, 300);
+  if (id === 'stage-2c') showSummary('s2', 2, ['s2r1','s2r2','s2r3','s2r4']);
+  if (id === 'stage-3c') showSummary('s3', 2, ['s3r1','s3r2','s3r3','s3r4']);
+  if (id === 'stage-4c') showSummary('s4', 2, ['s4r1','s4r2','s4r3','s4r4']);
+  if (id === 'stage-final') showFinal();
+}
+
+function updateDots(id) {
+  var map = {'stage-1a':1,'stage-1b':1,'stage-2a':2,'stage-2b':2,'stage-2c':2,'stage-3a':3,'stage-3b':3,'stage-3c':3,'stage-4a':4,'stage-4b':4,'stage-4c':4,'stage-5a':5,'stage-5b':5,'stage-6a':6,'stage-final':7};
+  var cur = map[id] || 1;
+  for (var i = 1; i <= 7; i++) {
+    var d = document.getElementById('dot-' + i);
+    if (!d) continue;
+    d.className = 'dot';
+    if (i < cur) d.classList.add('done');
+    else if (i === cur) d.classList.add('active');
+  }
+}
+
+function toggleDiff(n) {
+  var body = document.getElementById('dbody' + n);
+  var arrow = document.getElementById('darr' + n);
+  if (!body || !arrow) return;
+  var isOpen = body.classList.contains('open');
+  var allBodies = document.querySelectorAll('.diff-body');
+  var allArrows = document.querySelectorAll('.diff-arrow');
+  for (var i = 0; i < allBodies.length; i++) allBodies[i].classList.remove('open');
+  for (var i = 0; i < allArrows.length; i++) allArrows[i].classList.remove('open');
+  if (!isOpen) { body.classList.add('open'); arrow.classList.add('open'); }
+}
+
+function revealTimeline() {
+  var ids = ['tl1','tl2','tl3','tl4'];
+  for (var i = 0; i < ids.length; i++) {
+    (function(id, delay) {
+      setTimeout(function() {
+        var el = document.getElementById(id);
+        if (el) el.classList.add('revealed');
+      }, delay);
+    })(ids[i], 200 + i * 200);
+  }
+}
+
+function showSummary(key, total, stepIds) {
+  var el = document.getElementById(key + '-score');
+  if (el) el.textContent = '答題成績 ' + scores[key] + ' / ' + total;
+  for (var i = 0; i < stepIds.length; i++) {
+    (function(id, delay) {
+      setTimeout(function() {
+        var e = document.getElementById(id);
+        if (e) e.classList.add('revealed');
+      }, delay);
+    })(stepIds[i], 200 + i * 180);
+  }
+}
+
+function showFinal() {
+  var total = 0;
+  var keys = ['s1','s2','s3','s4','s5','s6'];
+  for (var i = 0; i < keys.length; i++) total += scores[keys[i]];
+  var maxQ = 14;
+  var el = document.getElementById('final-score');
+  if (el) el.textContent = '總答題成績 ' + total + ' / ' + maxQ;
+  var pct = total / maxQ;
+  var litStyle = 'font-size:38px;color:#fbbf24;text-shadow:0 0 24px rgba(251,191,36,0.7);transform:scale(1.25);transition:all 0.5s;';
+  var star1 = document.getElementById('fs1');
+  var star2 = document.getElementById('fs2');
+  var star3 = document.getElementById('fs3');
+  if (star1) setTimeout(function(){ star1.style.cssText = litStyle; }, 300);
+  if (pct >= 0.6 && star2) setTimeout(function(){ star2.style.cssText = litStyle; }, 600);
+  if (pct >= 0.85 && star3) setTimeout(function(){ star3.style.cssText = litStyle; }, 900);
+  var fcIds = ['fc1','fc2','fc3','fc4','fc5'];
+  for (var i = 0; i < fcIds.length; i++) {
+    (function(id, delay) {
+      setTimeout(function() {
+        var fc = document.getElementById(id);
+        if (fc) { fc.style.opacity='1'; fc.style.transform='translateY(0)'; }
+      }, delay);
+    })(fcIds[i], 400 + i * 150);
+  }
+}
+
+var feedbacks = {
+  's1q1':{ correct:'正確！低出生體重（早產）加肺動脈發育不良加染色體異常（非22q11.2）是三個高風險因素，建議先做姑息手術。新生兒期 CPB 對這類病人風險極高，應等條件成熟再做矯正術。', wrong:'不對。這個寶寶有多個高風險因素：體重 1.8 kg（早產）、肺動脈發育不良、非 22q11.2 的染色體異常。在這些條件下直接進行 CPB 和完整矯正術風險過高。先做姑息手術讓寶寶穩定，等肺動脈發育足夠再做矯正。' },
+  's1q2':{ correct:'正確！無症狀嬰兒在 3 到 6 個月是最佳手術時機：技術上比新生兒期容易，住院時間短（19天 vs 32天），避免 RVH 過度，還可減少跨瓣環補片的需求。', wrong:'不對。無症狀、肺動脈發育良好的嬰兒在 3 到 6 個月進行選擇性完整矯正術是目前的標準建議。等更久只會讓 RVH 惡化，增加手術難度和術後 RV 功能恢復的時間。' },
+  's1q3':{ correct:'正確！成人 TOF 矯正後出現嚴重 PR 加 RV 擴大加 RV EF 下降，是 PVR 的典型適應症。RV EF 40% 已低於 46% 的建議介入標準，加上症狀性運動不耐，符合多項 PVR 適應症。', wrong:'不對。這個成人的問題是矯正術後遠期出現的肺動脈瓣逆流，導致 RV 容積超載和功能下降。肺動脈瓣置換術（PVR）是最常見的成人 TOF 再介入手術，目的是保護 RV 功能。' },
+  's2q1':{ correct:'正確！SpO2 98% 看起來很好，但代謝性酸中毒加低血壓加尿少加蒼白，是體循環血流嚴重不足的表現。原因是 Shunt 太大，大量血流去了肺部，體循環被嚴重剝奪。BT Shunt 術後的目標 SpO2 是 75 到 85%，不是 98%。', wrong:'不對。BT Shunt 術後 SpO2 98% 看起來很好，但這正是問題所在——表示太多血去了肺部，體循環被偷走了。低血壓加代謝性酸中毒加尿少是體循環灌流嚴重不足的徵象，是 Qp/Qs 嚴重失衡（shunt 太大）的結果。' },
+  's2q2':{ correct:'正確！BT Shunt 做在右側鎖骨下動脈，術中右側手臂的橈動脈壓力會偽性降低（血流被分流走了）。左臂的 82/50 mmHg 才反映真實的中央主動脈壓。這是 BT Shunt 病人動脈導管位置最重要的臨床陷阱。', wrong:'不對。右臂血壓偽性降低是因為 BT Shunt 做在右側鎖骨下動脈，讓右臂的血流壓力下降。左臂的 82/50 mmHg 才是真實的中央主動脈壓。整個團隊都需要知道右臂血壓不可靠。' },
+  's3q1':{ correct:'正確！術中標準是 RV 壓力應低於 70 到 80% 主動脈壓。85% 超過這個標準，代表 RVOT 解除可能不完全，需要告知外科醫師重新評估，不能就這樣接受這個數值關胸。', wrong:'不對。RV/Ao 壓力比 85% 超過 70 到 80% 的標準，代表右心室出口（RVOT）解除阻塞可能不完全。這不是正常術後高壓可以等待的情況，應立即告知外科醫師進行評估，必要時重新處理 RVOT。' },
+  's3q2':{ correct:'正確！快速窄 QRS 加 P 波與 QRS 解離 = JET（交界性異位性心動過速）。JET 的處置：降體溫至 35°C（降低自律性）加補 K+ 和 Mg2+ 加考慮 Amiodarone。注意 JET 對電擊無效。', wrong:'再想想。QRS 窄排除了心室頻脈（VT 的 QRS 寬大）。P 波與 QRS 解離且心跳 162 bpm 符合 JET。JET 不需要電擊（電擊無效），也不是 AV block（AV block 心跳慢）。正確處置是降溫加電解質補充加 Amiodarone。' },
+  's4q1':{ correct:'正確！RV EF 38% 已嚴重下降，對血流動力學打擊耐受度極差。Etomidate 是對血流動力學影響最小的誘導藥物，是成人 ACHD 的首選之一。高風險 RV 病人應討論預防性 VA-ECMO 備用，萬一誘導後心臟無法維持即可立即啟動。', wrong:'不對。RV EF 38% 的病人對 SVR 驟降幾乎沒有代償能力。Propofol 快推、Thiopental 都有強力血管擴張作用，會直接造成血壓崩跌。成人 ACHD 誘導首選 Etomidate，謹慎緩慢給藥。' },
+  's4q2':{ correct:'正確！電生理檢查發現可誘發 VT，代表心臟有 VT 基質——術中或術後隨時可能發作。麻醉護理師需要確保去顫器就位、Amiodarone 備妥。更重要的是，建議術前多專科討論是否在 PVR 手術同時進行電生理消融，一次解決兩個問題，避免術後猝死。', wrong:'不對。可誘發的 VT 不是沒有意義的發現——它代表有 VT 基質，術中或術後可能隨時發作。光靠 Lidocaine 預防不足夠。去顫器、Amiodarone 必須備妥，並且建議多專科討論是否同期處理。' },
+  's5q1':{ correct:'正確！CVP 升高加上低血壓 = RV 功能惡化的組合。CVP 升高是因為 RV 打不出去，血液回堵。這時候不應該大量補液（只會讓已經脹大的 RV 更差），而是需要正性肌力藥（Milrinone 同時降低 PVR 加上增強收縮力）。', wrong:'不對。CVP 升高不代表需要補液——CVP 升高加上低血壓的組合是 RV 功能惡化的表現，是 RV 射血障礙的結果。大量補液反而讓已經超負荷的 RV 更差。正確方向是正性肌力支持（Milrinone），謹慎的液體管理。' },
+  's5q2':{ correct:'正確！紫紺型病人（有右到左分流）的靜脈管路必須使用靜脈輸液過濾器，並嚴格去除管路內所有空氣。原因：有分流存在時，靜脈端的空氣可以直接進入體循環（矛盾性栓塞），造成腦栓塞或冠狀動脈栓塞。', wrong:'不對。紫紺型 TOF 的靜脈管路最重要的特殊要求是靜脈輸液過濾器加上嚴格去氣。這是因為有右到左分流，靜脈端的空氣泡可以直接跳過肺部進入體循環，造成矛盾性栓塞（腦、冠狀動脈等）。這個細節非常容易被忽略但極度關鍵。' },
+  's6q1':{ correct:'正確！單一 SpO2 低不足以決定走姑息路線。決定因素是高風險條件的組合：低體重早產加肺動脈發育不良加染色體異常，這三個加在一起讓新生兒期 CPB 的風險遠高於分階段手術的風險。', wrong:'SpO2 低本身不是選姑息手術的主要理由。選擇姑息而非矯正的核心依據是高風險因素的組合：低出生體重（早產）加肺動脈發育不良加染色體異常，這些讓 CPB 風險大幅增加。' },
+  's6q2':{ correct:'正確！這正是 BT Shunt 病人動脈導管位置的經典陷阱。新生兒期右側 BT Shunt 讓右手橈動脈壓偽性降低，股動脈的 82/50 mmHg 才是真實的中央壓力。', wrong:'不對。這是 BT Shunt 的經典陷阱：右側手術讓右手橈動脈血流改道，血壓偽性降低。放在右手的動脈導管數值不可信，需要用股動脈（左手或下肢）的數值才能正確反映中央主動脈壓。' },
+  's6q3':{ correct:'正確！兩個最關鍵：第一，VT 基質已知，所以去顫器就位加上 Amiodarone 備妥；第二，RV EF 40% 嚴重下降，所以討論 VA-ECMO 備用方案。Etomidate 是誘導首選。', wrong:'不對。這個病人有兩個最迫切的風險：第一，有可誘發 VT（去顫器加上 Amiodarone 是必備）；第二，RV EF 40% 嚴重下降（VA-ECMO 備用討論）。Propofol 快推是禁忌，Atropine 不是最關鍵的準備。' }
+};
+
+function answerQ(qid, btn, isCorrect, fbId, stageKey) {
+  var key = stageKey + qid;
+  if (answered[key]) return;
+  answered[key] = true;
+  if (isCorrect) scores[stageKey]++;
+  var btns = btn.parentElement.querySelectorAll('.option-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].disabled = true;
+  btn.classList.add(isCorrect ? 'correct' : 'wrong');
+  var fb = document.getElementById(fbId);
+  if (fb && feedbacks[fbId]) {
+    fb.className = 'feedback-box show ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+    fb.textContent = isCorrect ? feedbacks[fbId].correct : feedbacks[fbId].wrong;
+  }
+}
+
+function revealNext(nextId, btnId) {
+  setTimeout(function() {
+    if (nextId) {
+      var el = document.getElementById(nextId);
+      if (el) { el.style.display='block'; el.scrollIntoView({behavior:'smooth',block:'start'}); }
+    }
+    if (btnId) {
+      var btn = document.getElementById(btnId);
+      if (btn) { btn.classList.add('show'); btn.scrollIntoView({behavior:'smooth'}); }
+    }
+  }, 1400);
+}
+
+function answerS1(qid,btn,isCorrect,fbId){ answerQ(qid,btn,isCorrect,fbId,'s1'); var order=['q1','q2','q3']; var idx=order.indexOf(qid); if(idx<order.length-1){ revealNext('s1-'+order[idx+1],null); } else { revealNext(null,'btn-1b-next'); } }
+function answerS2(qid,btn,isCorrect,fbId){ answerQ(qid,btn,isCorrect,fbId,'s2'); var order=['q1','q2']; var idx=order.indexOf(qid); if(idx<order.length-1){ revealNext('s2-'+order[idx+1],null); } else { revealNext(null,'btn-2b-next'); } }
+function answerS3(qid,btn,isCorrect,fbId){ answerQ(qid,btn,isCorrect,fbId,'s3'); var order=['q1','q2']; var idx=order.indexOf(qid); if(idx<order.length-1){ revealNext('s3-'+order[idx+1],null); } else { revealNext(null,'btn-3b-next'); } }
+function answerS4(qid,btn,isCorrect,fbId){ answerQ(qid,btn,isCorrect,fbId,'s4'); var order=['q1','q2']; var idx=order.indexOf(qid); if(idx<order.length-1){ revealNext('s4-'+order[idx+1],null); } else { revealNext(null,'btn-4b-next'); } }
+function answerS5(qid,btn,isCorrect,fbId){ answerQ(qid,btn,isCorrect,fbId,'s5'); var order=['q1','q2']; var idx=order.indexOf(qid); if(idx<order.length-1){ revealNext('s5-'+order[idx+1],null); } else { revealNext(null,'btn-5b-next'); } }
+function answerS6(qid,btn,isCorrect,fbId){ answerQ(qid,btn,isCorrect,fbId,'s6'); var order=['q1','q2','q3']; var idx=order.indexOf(qid); if(idx<order.length-1){ revealNext('s6-'+order[idx+1],null); } else { revealNext(null,'btn-6a-next'); } }
+
+window.addEventListener('load', function() { revealTimeline(); });
+</script>
+</body>
+</html>
